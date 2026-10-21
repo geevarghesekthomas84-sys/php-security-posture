@@ -100,6 +100,19 @@ python3 poc/php2shell_guard.py --scan-log /var/log/php-fpm.log
 The guard checks local PHP settings and scans approved logs for defensive
 investigation indicators. It never sends requests to a target.
 
+For a real-world, GET-only external check:
+
+```bash
+python3 poc/real_world_check.py \
+  --targets-file targets.txt \
+  --format json \
+  --out real-world-check.json
+```
+
+Use an authenticated health endpoint where possible. The checker reads at most
+128 KB per response and does not send POST, multipart, memory-exhaustion, or
+code-execution payloads. `--insecure` is only for disposable labs.
+
 The auditor reports severity, evidence, remediation, and confidence. See the
 [assessment runbook](docs/ASSESSMENT.md) and [report template](docs/REPORT.md)
 for an operational workflow.
