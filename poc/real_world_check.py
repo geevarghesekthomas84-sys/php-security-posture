@@ -7,7 +7,10 @@ import argparse
 import concurrent.futures
 import csv
 import json
+import os
 import ssl
+import sys
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -47,6 +50,41 @@ def load_targets(args: argparse.Namespace) -> list[str]:
     return [target for target in targets if target]
 
 
+def render_console(results: list[dict], animate: bool) -> str:
+    colors = {
+        "cyan": "\033[96m", "blue": "\033[94m", "green": "\033[92m",
+        "yellow": "\033[93m", "red": "\033[91m", "dim": "\033[2m", "reset": "\033[0m",
+    }
+    use_color = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
+    c = colors if use_color else {key: "" for key in colors}
+    unicode_ok = (sys.stdout.encoding or "").lower().replace("-", "") in {"utf8", "utf16"}
+    top, middle, bottom = ("╭────────────────────────────────────────────╮", "│", "╰────────────────────────────────────────────╯") if unicode_ok else ("+--------------------------------------------+", "|", "+--------------------------------------------+")
+    check_icon = "✓" if unicode_ok else "OK"
+    warn_icon = "!"
+    frames = "|/-\\"
+    if animate and sys.stdout.isatty():
+        for index in range(8):
+            sys.stdout.write(f"\r  {c['cyan']}checking approved endpoints {frames[index % len(frames)]}{c['reset']}")
+            sys.stdout.flush()
+            time.sleep(0.05)
+        sys.stdout.write("\r" + " " * 50 + "\r")
+    lines = [
+        f"{c['blue']}{top}{c['reset']}",
+        f"{c['blue']}{middle}{c['reset']}  {c['cyan']}PHP SECURITY POSTURE - SAFE CHECK{c['reset']}  {c['blue']}{middle}{c['reset']}",
+        f"{c['blue']}{bottom}{c['reset']}",
+    ]
+    for result in results:
+        status = result["status"]
+        color = c["green"] if status in {"review", "reachable_unverified"} else c["yellow"]
+        icon = check_icon if status in {"review", "reachable_unverified"} else warn_icon
+        lines.append(f"{color}{icon}{c['reset']} {status.upper():<20} {result['url']}")
+        for key in ("php_version", "upload_progress", "sapi", "server_header", "powered_by", "error"):
+            if key in result:
+                lines.append(f"    {c['dim']}{key:<18}{c['reset']} {result[key]}")
+    lines.append(f"\n{c['dim']}GET-only check - no exploit payloads sent{c['reset']}")
+    return "\n".join(lines) + "\n"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--url", action="append", help="approved HTTPS health endpoint; repeatable")
@@ -56,6 +94,7 @@ def main() -> int:
     parser.add_argument("--insecure", action="store_true", help="allow invalid TLS certificates for lab use only")
     parser.add_argument("--format", choices=("text", "json", "csv"), default="text")
     parser.add_argument("--out", default="-")
+    parser.add_argument("--plain", action="store_true", help="disable shell colors and animation")
     args = parser.parse_args()
     targets = load_targets(args)
     if not targets:
@@ -72,13 +111,11 @@ def main() -> int:
         writer.writeheader(); writer.writerows(results)
         output = buffer.getvalue()
     else:
-        lines = []
-        for result in results:
-            lines.append(f"{result['status'].upper():<20} {result['url']}")
-            for key in ("php_version", "upload_progress", "sapi", "server_header", "powered_by", "error", "note"):
-                if key in result:
-                    lines.append(f"  {key}: {result[key]}")
-        output = "\n".join(lines) + "\n"
+        if args.plain:
+            lines = [f"{result['status'].upper():<20} {result['url']}" for result in results]
+            output = "\n".join(lines) + "\n"
+        else:
+            output = render_console(results, animate=True)
     if args.out == "-":
         print(output, end="")
     else:
