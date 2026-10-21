@@ -12,4 +12,6 @@ assessment.json
 assessment.csv
 assessment.sarif
 assessment.html
+posture-report.html
+assessment.md
 sbom/bom.json

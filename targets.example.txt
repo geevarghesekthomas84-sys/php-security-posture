@@ -1,0 +1,2 @@
+# Approved endpoints only. Use one URL per line.
+http://127.0.0.1:18080/health.php

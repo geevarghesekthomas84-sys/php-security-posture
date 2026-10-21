@@ -48,6 +48,17 @@ python3 poc/assess_fleet.py --targets-file targets.txt --format html --out asses
 CSV and JSON formats are also available. Run `make test` and `make sbom` before
 opening a pull request. A CycloneDX inventory is generated for releases.
 
+For production-style findings with severity and remediation:
+
+```bash
+python3 poc/posture_audit.py --targets-file targets.txt \
+  --format html --out posture-report.html --fail-on high
+python3 poc/posture_audit.py --local --format markdown
+```
+
+See [docs/SECURITY_BASELINE.md](docs/SECURITY_BASELINE.md) for the deployment
+baseline. Only assess endpoints you own or are explicitly authorized to test.
+
 ## Lab
 
 The lab is intentionally local-only and uses an unprivileged Docker Compose

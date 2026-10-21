@@ -16,9 +16,15 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile Python checks
-        run: python -m py_compile poc/check_php_release.py poc/assess_fleet.py
+        run: python -m py_compile poc/check_php_release.py poc/assess_fleet.py poc/posture_audit.py
       - name: Run unit tests
         run: python -m unittest discover -s poc -p 'test_*.py'
+      - name: Audit local lab endpoint
+        run: |
+          docker compose -f lab/docker-compose.yml up -d
+          python poc/posture_audit.py --target http://127.0.0.1:18080/health.php --format sarif --out assessment.sarif --fail-on critical || test $? -eq 1
+          docker compose -f lab/docker-compose.yml down
+        shell: bash
       - name: Generate SBOM
         run: python tools/generate_sbom.py
       - name: Validate Compose file
