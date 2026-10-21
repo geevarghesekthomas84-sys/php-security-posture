@@ -115,10 +115,11 @@ Use an authenticated health endpoint where possible. The checker reads at most
 128 KB per response and does not send POST, multipart, memory-exhaustion, or
 code-execution payloads. `--insecure` is only for disposable labs.
 
-Safe method checks support `GET`, `HEAD`, and `OPTIONS`:
+Safe method checks support `GET`, `HEAD`, and `OPTIONS`. Use `MATRIX` to run
+all three and capture the server's `Allow` header:
 
 ```bash
-python3 poc/real_world_check.py --url https://example.test/health --method OPTIONS
+python3 poc/real_world_check.py --url https://example.test/health --method MATRIX
 ```
 
 Use `--show-all-methods` to list every HTTP method without sending the

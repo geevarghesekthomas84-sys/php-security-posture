@@ -48,8 +48,9 @@ def check(url: str, timeout: float, authorization: str | None, insecure: bool, m
                 "sapi": fields.get("SAPI", "unknown"),
                 "server_header": response.headers.get("Server", "not disclosed"),
                 "powered_by": response.headers.get("X-Powered-By", "not disclosed"),
+                "allow": response.headers.get("Allow", "not disclosed"),
                 "status": "review" if "PHP_VERSION" in fields else "reachable_unverified",
-                "note": "GET-only check; absence of evidence is not proof of safety",
+                "note": f"{method}-only check; absence of evidence is not proof of safety",
             }
     except urllib.error.HTTPError as exc:
         return {"url": url, "method": method, "status": "http_error", "http_status": exc.code, "error": str(exc)}
@@ -95,7 +96,7 @@ def render_console(results: list[dict], animate: bool) -> str:
         color = c["green"] if status in {"review", "reachable_unverified"} else c["yellow"]
         icon = check_icon if status in {"review", "reachable_unverified"} else warn_icon
         lines.append(f"{color}{icon}{c['reset']} {status.upper():<20} {result.get('method', 'GET'):<7} {result['url']}")
-        for key in ("php_version", "upload_progress", "sapi", "server_header", "powered_by", "error"):
+        for key in ("php_version", "upload_progress", "sapi", "server_header", "powered_by", "allow", "error"):
             if key in result:
                 lines.append(f"    {c['dim']}{key:<18}{c['reset']} {result[key]}")
     lines.append(f"\n{c['dim']}GET-only check - no exploit payloads sent{c['reset']}")
@@ -110,7 +111,7 @@ def main() -> int:
     parser.add_argument("--targets-file", help="one approved endpoint per line")
     parser.add_argument("--authorization", help="optional Authorization header value")
     parser.add_argument("--timeout", type=float, default=10)
-    parser.add_argument("--method", choices=SAFE_METHODS, default="GET", help="safe request method; default GET")
+    parser.add_argument("--method", choices=SAFE_METHODS + ("MATRIX",), default="GET", help="safe method or MATRIX for GET/HEAD/OPTIONS")
     parser.add_argument("--show-all-methods", action="store_true", help="list all method names without sending them")
     parser.add_argument("--insecure", action="store_true", help="allow invalid TLS certificates for lab use only")
     parser.add_argument("--format", choices=("text", "json", "csv"), default="text")
@@ -120,14 +121,16 @@ def main() -> int:
     targets = load_targets(args)
     if not targets:
         parser.error("provide --url or --targets-file")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=min(8, len(targets))) as pool:
-        results = list(pool.map(lambda item: check(item, args.timeout, args.authorization, args.insecure, args.method), targets))
+    methods = SAFE_METHODS if args.method == "MATRIX" else (args.method,)
+    jobs = [(target, method) for target in targets for method in methods]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(8, len(jobs))) as pool:
+        results = list(pool.map(lambda item: check(item[0], args.timeout, args.authorization, args.insecure, item[1]), jobs))
     if args.format == "json":
         output = json.dumps({"results": results}, indent=2) + "\n"
     elif args.format == "csv":
         import io
         buffer = io.StringIO()
-        fields = ("url", "method", "status", "http_status", "php_version", "upload_progress", "sapi", "server_header", "powered_by", "error", "note")
+        fields = ("url", "method", "status", "http_status", "php_version", "upload_progress", "sapi", "server_header", "powered_by", "allow", "error", "note")
         writer = csv.DictWriter(buffer, fieldnames=fields)
         writer.writeheader(); writer.writerows(results)
         output = buffer.getvalue()
