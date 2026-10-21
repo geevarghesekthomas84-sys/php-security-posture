@@ -33,6 +33,11 @@ The checker reports the PHP version exposed by a local endpoint, whether upload
 progress is enabled, and the corresponding remediation guidance. It sends one
 small, benign request and never attempts to exhaust memory or execute code.
 
+For an operational workflow, use [docs/ASSESSMENT.md](docs/ASSESSMENT.md).
+It shows how to capture evidence for a maintenance ticket without collecting
+secrets or request bodies. CI validates the checker and Compose configuration
+on every push and pull request.
+
 ## Lab
 
 The lab is intentionally local-only and uses an unprivileged Docker Compose

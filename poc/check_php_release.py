@@ -11,6 +11,7 @@ import argparse
 import json
 import re
 import socket
+from pathlib import Path
 from urllib.parse import urlparse
 
 
@@ -39,6 +40,7 @@ def main() -> int:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=18080)
     parser.add_argument("--path", default="/health.php")
+    parser.add_argument("--json-out", help="also write the assessment JSON to this file")
     args = parser.parse_args()
 
     host, port, path = args.host, args.port, args.path
@@ -53,7 +55,10 @@ def main() -> int:
     body = text.split("\r\n\r\n", 1)[-1]
     match = re.search(r"PHP_VERSION=([0-9]+\.[0-9]+\.[0-9]+).*UPLOAD_PROGRESS=([01])", body)
     if not match:
-        print(json.dumps({"status": "unknown", "reason": "endpoint did not expose the expected health fields"}, indent=2))
+        result = {"status": "unknown", "reason": "endpoint did not expose the expected health fields"}
+        print(json.dumps(result, indent=2))
+        if args.json_out:
+            Path(args.json_out).write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
         return 2
 
     version = tuple(map(int, match.group(1).split(".")))
@@ -67,6 +72,8 @@ def main() -> int:
         result["status"] = "upgrade_required"
         result["guidance"] = "Upgrade to the vendor-fixed release before exposing the service."
     print(json.dumps(result, indent=2))
+    if args.json_out:
+        Path(args.json_out).write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     return 0 if result["status"] == "patched_branch" else 1
 
 
