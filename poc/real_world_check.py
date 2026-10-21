@@ -77,14 +77,19 @@ def render_console(results: list[dict], animate: bool) -> str:
     check_icon = "✓" if unicode_ok else "OK"
     warn_icon = "!"
     frames = "|/-\\"
-    if animate and sys.stdout.isatty():
+    if animate:
         steps = ("connecting", "reading health data", "checking PHP posture", "building report")
         for index in range(12):
             step = steps[index % len(steps)]
-            sys.stdout.write(f"\r  {c['cyan']}{step:<22} {frames[index % len(frames)]}{c['reset']}")
-            sys.stdout.flush()
+            progress = f"  {c['cyan']}{step:<22} {frames[index % len(frames)]}{c['reset']}"
+            if sys.stdout.isatty():
+                sys.stdout.write("\r" + progress)
+                sys.stdout.flush()
+            else:
+                sys.stdout.write(progress + "\n")
             time.sleep(0.05)
-        sys.stdout.write("\r" + " " * 50 + "\r")
+        if sys.stdout.isatty():
+            sys.stdout.write("\r" + " " * 50 + "\r")
     lines = [
         f"{c['blue']}{top}{c['reset']}",
         f"{c['blue']}{middle}{c['reset']}  {c['cyan']}PHP SECURITY POSTURE - SAFE CHECK{c['reset']}  {c['blue']}{middle}{c['reset']}",
