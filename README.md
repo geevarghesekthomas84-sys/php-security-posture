@@ -115,6 +115,16 @@ Use an authenticated health endpoint where possible. The checker reads at most
 128 KB per response and does not send POST, multipart, memory-exhaustion, or
 code-execution payloads. `--insecure` is only for disposable labs.
 
+Safe method checks support `GET`, `HEAD`, and `OPTIONS`:
+
+```bash
+python3 poc/real_world_check.py --url https://example.test/health --method OPTIONS
+```
+
+Use `--show-all-methods` to list every HTTP method without sending the
+state-changing methods. `POST`, `PUT`, `PATCH`, and `DELETE` are intentionally
+not sent by this tool.
+
 Interactive text output lists names-only research scenarios and the Abstract
 and Wiz reference URLs. It does not display exploit steps or payloads.
 
