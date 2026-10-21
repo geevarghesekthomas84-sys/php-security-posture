@@ -14,7 +14,7 @@ echo 'MEMORY_LIMIT=' . ini_get('memory_limit') . PHP_EOL;
 echo 'POST_MAX_SIZE=' . ini_get('post_max_size') . PHP_EOL;
 PHP
 
-cat > php.ini <<'INI'
+cat > php.runtime.ini <<'INI'
 [Session]
 session.save_handler = files
 session.save_path = /tmp/sessions
@@ -33,7 +33,7 @@ upload_max_filesize = 8M
 memory_limit = 256M
 INI
 
-cat > nginx.conf <<'NGINX'
+cat > nginx.default.conf <<'NGINX'
 server {
     listen 80;
     root /var/www/html;

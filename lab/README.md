@@ -12,6 +12,16 @@ docker compose logs --no-color php
 docker compose down
 ```
 
+If Docker Desktop previously created `php.ini` or `nginx.conf` as directories
+because the files were missing, the Compose file now uses the unambiguous
+`php.runtime.ini` and `nginx.default.conf` names. Remove the old stopped lab
+before restarting:
+
+```powershell
+docker compose down --remove-orphans
+docker compose up -d
+```
+
 The service binds to `127.0.0.1` only. Do not expose it to a network. The
 container has no privileged mode, host filesystem mounts, or host networking.
 
