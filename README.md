@@ -1,5 +1,7 @@
 # PHP Security Posture
 
+![PHP Security Posture banner](assets/security-posture-banner.png)
+
 Defensive tooling for verifying PHP security releases, configuration posture,
 and remediation evidence across local labs and approved fleets.
 
