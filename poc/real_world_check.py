@@ -17,6 +17,18 @@ from pathlib import Path
 
 PROJECT_URL = "https://github.com/geevarghesekthomas84-sys/php-security-posture"
 AUTHOR = "GG"
+RESEARCH_URLS = (
+    "https://www.abstract.security/blog/php2shell-critical-php-rce-vulnerabilities-cve-2026-109618-and-cve-2026-109619",
+    "https://www.wiz.io/blog/php2shell-php-rce",
+)
+SCENARIOS = (
+    "CVE-2026-109618 - rawkey / oversized-request OOM family",
+    "CVE-2026-109619 - php2shell upload-progress family",
+    "Upload-progress unserializer use-after-free",
+    "Fatal-error backtrace use-after-free",
+    "OPcache type confusion",
+    "Remote process-memory disclosure",
+)
 
 
 def check(url: str, timeout: float, authorization: str | None, insecure: bool) -> dict:
@@ -88,6 +100,10 @@ def render_console(results: list[dict], animate: bool) -> str:
             if key in result:
                 lines.append(f"    {c['dim']}{key:<18}{c['reset']} {result[key]}")
     lines.append(f"\n{c['dim']}GET-only check - no exploit payloads sent{c['reset']}")
+    lines.append(f"{c['cyan']}Named research scenarios:{c['reset']}")
+    lines.extend(f"  - {scenario}" for scenario in SCENARIOS)
+    lines.append(f"{c['cyan']}Research references:{c['reset']}")
+    lines.extend(f"  - {url}" for url in RESEARCH_URLS)
     return "\n".join(lines) + "\n"
 
 

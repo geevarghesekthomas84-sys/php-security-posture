@@ -115,6 +115,9 @@ Use an authenticated health endpoint where possible. The checker reads at most
 128 KB per response and does not send POST, multipart, memory-exhaustion, or
 code-execution payloads. `--insecure` is only for disposable labs.
 
+Interactive text output lists names-only research scenarios and the Abstract
+and Wiz reference URLs. It does not display exploit steps or payloads.
+
 The auditor reports severity, evidence, remediation, and confidence. See the
 [assessment runbook](docs/ASSESSMENT.md) and [report template](docs/REPORT.md)
 for an operational workflow.
