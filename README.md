@@ -38,6 +38,16 @@ It shows how to capture evidence for a maintenance ticket without collecting
 secrets or request bodies. CI validates the checker and Compose configuration
 on every push and pull request.
 
+For multiple approved endpoints, use the fleet assessor:
+
+```bash
+python3 poc/assess_fleet.py --targets-file targets.txt --format sarif --out assessment.sarif
+python3 poc/assess_fleet.py --targets-file targets.txt --format html --out assessment.html
+```
+
+CSV and JSON formats are also available. Run `make test` and `make sbom` before
+opening a pull request. A CycloneDX inventory is generated for releases.
+
 ## Lab
 
 The lab is intentionally local-only and uses an unprivileged Docker Compose

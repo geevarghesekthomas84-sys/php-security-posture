@@ -7,3 +7,8 @@ env/
 lab/webroot/
 lab/*.log
 lab/.php-version
+assessment.json
+assessment.csv
+assessment.sarif
+assessment.html
+sbom/bom.json
