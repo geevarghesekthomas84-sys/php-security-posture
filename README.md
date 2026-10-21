@@ -133,6 +133,18 @@ The auditor reports severity, evidence, remediation, and confidence. See the
 [assessment runbook](docs/ASSESSMENT.md) and [report template](docs/REPORT.md)
 for an operational workflow.
 
+Reports include a 0-100 risk score and level. For reliable host-level evidence,
+run the localhost-only agent:
+
+```bash
+python3 poc/local_agent.py --once
+python3 poc/local_agent.py --token "use-a-long-random-token"
+```
+
+The agent requires `Authorization: Bearer ...`, binds only to `127.0.0.1`, and
+returns configuration metadata only. It does not expose secrets or execute
+remote commands.
+
 ## Findings covered
 
 - PHP below the assessed vendor-fixed release.

@@ -18,6 +18,7 @@ from pathlib import Path
 
 FIXED = {(8, 2): (8, 2, 35), (8, 3): (8, 3, 36), (8, 4): (8, 4, 27), (8, 5): (8, 5, 12)}
 SEVERITY_ORDER = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
+SEVERITY_WEIGHT = {"critical": 60, "high": 30, "medium": 15, "low": 5, "info": 0}
 
 
 @dataclass
@@ -29,6 +30,21 @@ class Finding:
     evidence: str
     remediation: str
     confidence: str = "medium"
+
+
+def risk_summary(findings: list[Finding]) -> dict:
+    score = min(100, sum(SEVERITY_WEIGHT[item.severity] for item in findings))
+    if score >= 75:
+        level = "critical"
+    elif score >= 50:
+        level = "high"
+    elif score >= 25:
+        level = "medium"
+    elif score:
+        level = "low"
+    else:
+        level = "clear"
+    return {"score": score, "level": level, "finding_count": len(findings)}
 
 
 def version_tuple(value: str) -> tuple[int, int, int] | None:
@@ -90,7 +106,7 @@ def audit_local() -> list[Finding]:
 def render(findings: list[Finding], fmt: str) -> str:
     records = [asdict(item) for item in findings]
     if fmt == "json":
-        return json.dumps({"findings": records}, indent=2) + "\n"
+        return json.dumps({"risk": risk_summary(findings), "findings": records}, indent=2) + "\n"
     if fmt == "csv":
         import io
         buffer = io.StringIO()
@@ -99,7 +115,8 @@ def render(findings: list[Finding], fmt: str) -> str:
         return buffer.getvalue()
     if fmt == "html":
         rows = "".join("<tr>" + "".join(f"<td>{html.escape(str(item.get(key, '')))}</td>" for key in records[0]) + "</tr>" for item in records) if records else ""
-        return "<!doctype html><meta charset='utf-8'><title>PHP posture audit</title><style>body{font:16px system-ui;margin:2rem}table{border-collapse:collapse}td,th{border:1px solid #bbb;padding:.5rem}</style><h1>PHP posture audit</h1><table><tr>" + "".join(f"<th>{key}</th>" for key in (records[0] if records else Finding.__annotations__)) + "</tr>" + rows + "</table>\n"
+        summary = risk_summary(findings)
+        return "<!doctype html><meta charset='utf-8'><title>PHP posture audit</title><style>body{font:16px system-ui;margin:2rem}table{border-collapse:collapse}td,th{border:1px solid #bbb;padding:.5rem}</style><h1>PHP posture audit</h1><p>Risk: <strong>" + summary["level"] + "</strong> (" + str(summary["score"]) + "/100)</p><table><tr>" + "".join(f"<th>{key}</th>" for key in (records[0] if records else Finding.__annotations__)) + "</tr>" + rows + "</table>\n"
     if fmt == "markdown":
         lines = ["| Target | Severity | Rule | Finding | Remediation |", "| --- | --- | --- | --- | --- |"]
         lines += [f"| {item.target} | {item.severity} | `{item.rule_id}` | {item.title} | {item.remediation} |" for item in findings]
