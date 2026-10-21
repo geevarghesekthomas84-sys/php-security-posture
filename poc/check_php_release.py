@@ -53,7 +53,7 @@ def main() -> int:
     response = fetch(host, port, path)
     text = response.decode("utf-8", "replace")
     body = text.split("\r\n\r\n", 1)[-1]
-    match = re.search(r"PHP_VERSION=([0-9]+\.[0-9]+\.[0-9]+).*UPLOAD_PROGRESS=([01])", body)
+    match = re.search(r"PHP_VERSION=([0-9]+\.[0-9]+\.[0-9]+).*UPLOAD_PROGRESS=([01])", body, re.DOTALL)
     if not match:
         result = {"status": "unknown", "reason": "endpoint did not expose the expected health fields"}
         print(json.dumps(result, indent=2))
