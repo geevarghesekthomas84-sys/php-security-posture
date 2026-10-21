@@ -22,6 +22,17 @@ This project is deliberately non-destructive. It does not contain exploit
 payloads, RCE chains, heap sprays, memory-corruption triggers, or OOM/DoS
 generators.
 
+## Advisory summary
+
+| Identifier | CVSS v4.0 | Summary | Fixed upstream branches |
+| --- | ---: | --- | --- |
+| CVE-2026-109618 | 9.2 Critical | Out-of-memory handling can leave internal request data partially initialized, after which cleanup may use invalid state. | 8.2.35, 8.3.36, 8.4.27, 8.5.12 |
+| CVE-2026-109619 | 9.2 Critical | Request-owned internal state can outlive its backing memory and be reused by a later request in the same worker. | 8.2.35, 8.3.36, 8.4.27, 8.5.12 |
+
+The complete remediation is a vendor-fixed PHP update. Configuration changes
+can reduce exposure to specific paths but are not a substitute for patching.
+Check your OS or PHP vendor for backported fixes on older branches.
+
 ## Quick start
 
 Start the local lab:
@@ -118,6 +129,11 @@ and CodeQL analysis. Releases attach a CycloneDX SBOM.
 
 Only test approved assets. Do not place credentials, cookies, private URLs, or
 request bodies in reports. For vulnerability reports, follow [SECURITY.md](SECURITY.md).
+
+## References
+
+- [PHP 2026 security advisories](https://www.php.net/archive/2026.php)
+- [PHP security policy](https://wiki.php.net/security)
 
 ## License
 

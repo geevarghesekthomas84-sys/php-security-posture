@@ -6,6 +6,18 @@ This project tracks independent verification of CVE-2026-109618 and
 CVE-2026-109619 using the PHP security release as the source of truth. The
 repository deliberately avoids reproducing weaponized exploit chains.
 
+## CVE and severity reference
+
+The PHP security advisory identifies both issues as CVSS v4.0 9.2 Critical:
+
+- **CVE-2026-109618:** OOM handling can interrupt PHP while internal request
+  data is partially initialized; request cleanup may then use invalid data.
+- **CVE-2026-109619:** Request-owned internal state can survive after its
+  backing memory is freed and be reused by a later request in the same worker.
+
+Fixed upstream versions are PHP 8.2.35, 8.3.36, 8.4.27, and 8.5.12. Vendor
+backports may use different package version strings.
+
 ## Evidence matrix
 
 | Item | Status | Evidence to collect |

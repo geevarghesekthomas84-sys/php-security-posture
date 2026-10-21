@@ -50,3 +50,9 @@ is unconfirmed, or the service is running an unsupported branch.
 
 **Unknown:** endpoint did not expose version evidence; use host-level package
 inspection and repeat the assessment.
+
+## Advisory reference
+
+This assessment tracks CVE-2026-109618 and CVE-2026-109619, both rated CVSS
+v4.0 9.2 Critical by the PHP security advisory. Record the exact vendor
+advisory or package bulletin used when closing a remediation ticket.
