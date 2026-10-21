@@ -1,94 +1,123 @@
-# CVE-2026-109618 & CVE-2026-109619
+# PHP Security Posture
 
-## Independent Research & Verification
+Defensive tooling for verifying PHP security releases, configuration posture,
+and remediation evidence across local labs and approved fleets.
 
-This repository is a defensive, reproducible companion for reviewing the PHP
-security release published on 21 October 2026. It provides a small local lab,
-configuration checks, and evidence-collection helpers for defenders and
-maintainers.
+[![CI](https://github.com/geevarghesekthomas84-sys/php-security-posture/actions/workflows/ci.yml/badge.svg)](https://github.com/geevarghesekthomas84-sys/php-security-posture/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/geevarghesekthomas84-sys/php-security-posture/actions/workflows/codeql.yml/badge.svg)](https://github.com/geevarghesekthomas84-sys/php-security-posture/actions/workflows/codeql.yml)
 
-> **Safety:** The repository does not contain an exploit, RCE chain, heap spray,
-> memory-corruption trigger, or crash/OOM generator. Run all checks only against
-> systems you own or are explicitly authorized to assess.
+## What this project does
 
-## What the advisory says
+PHP Security Posture turns a PHP security advisory into repeatable checks that
+can be attached to a maintenance ticket, audit record, or CI pipeline.
 
-| CVE | Officially described issue | Practical guidance |
-| --- | --- | --- |
-| CVE-2026-109618 | OOM handling can interrupt PHP while internal request data is partially initialized; request cleanup may use invalid data. | Upgrade. Reduce request/resource exposure while patching. |
-| CVE-2026-109619 | Request-owned internal state can survive after its backing memory is freed and be reused by a later request in the same worker. | Upgrade. Disable upload progress before request parsing where appropriate and restart workers. |
+- Verifies PHP release levels and selected runtime settings.
+- Audits multiple approved health endpoints concurrently.
+- Produces JSON, CSV, Markdown, HTML, and SARIF reports.
+- Supports local `php -i` inspection when an endpoint is not available.
+- Ships a disposable PHP-FPM/nginx lab for reproducible testing.
+- Generates a CycloneDX software inventory for release artifacts.
 
-The complete fix is a vendor PHP update. Fixed upstream versions listed in the
-advisory are PHP 8.2.35, 8.3.36, 8.4.27, and 8.5.12. Older branches may have
-vendor backports; check the package provider rather than relying on a version
-string alone.
+This project is deliberately non-destructive. It does not contain exploit
+payloads, RCE chains, heap sprays, memory-corruption triggers, or OOM/DoS
+generators.
 
-## Quick check
+## Quick start
 
-```bash
-python3 poc/check_php_release.py --host 127.0.0.1 --port 18080
-```
-
-The checker reports the PHP version exposed by a local endpoint, whether upload
-progress is enabled, and the corresponding remediation guidance. It sends one
-small, benign request and never attempts to exhaust memory or execute code.
-
-For an operational workflow, use [docs/ASSESSMENT.md](docs/ASSESSMENT.md).
-It shows how to capture evidence for a maintenance ticket without collecting
-secrets or request bodies. CI validates the checker and Compose configuration
-on every push and pull request.
-
-For multiple approved endpoints, use the fleet assessor:
-
-```bash
-python3 poc/assess_fleet.py --targets-file targets.txt --format sarif --out assessment.sarif
-python3 poc/assess_fleet.py --targets-file targets.txt --format html --out assessment.html
-```
-
-CSV and JSON formats are also available. Run `make test` and `make sbom` before
-opening a pull request. A CycloneDX inventory is generated for releases.
-
-For production-style findings with severity and remediation:
-
-```bash
-python3 poc/posture_audit.py --targets-file targets.txt \
-  --format html --out posture-report.html --fail-on high
-python3 poc/posture_audit.py --local --format markdown
-```
-
-See [docs/SECURITY_BASELINE.md](docs/SECURITY_BASELINE.md) for the deployment
-baseline. Only assess endpoints you own or are explicitly authorized to test.
-
-## Lab
-
-The lab is intentionally local-only and uses an unprivileged Docker Compose
-setup. See [lab/README.md](lab/README.md) for prerequisites, startup, cleanup,
-and the evidence to capture.
+Start the local lab:
 
 ```bash
 cd lab
 docker compose up -d
 python3 ../poc/check_php_release.py --host 127.0.0.1 --port 18080
+```
+
+Expected result:
+
+```json
+{
+  "php_version": "8.2.35",
+  "upload_progress_enabled": false,
+  "status": "patched_branch"
+}
+```
+
+Stop the lab when finished:
+
+```bash
 docker compose down
 ```
 
-## Repository layout
+## Production-style audit
 
-- `poc/` — bounded, non-destructive verification helpers.
-- `lab/` — disposable PHP-FPM/nginx lab configuration.
-- `docs/ANALYSIS.md` — source-based research notes and evidence matrix.
-- `SECURITY.md` — reporting and safe-use policy.
+Use only against systems you own or are explicitly authorized to assess.
 
-## References
+Create a target file from the example:
 
-- [PHP security release and advisory](https://www.php.net/)
-- [PHP security policy](https://wiki.php.net/security)
-- [CVE-2026-109618](https://www.cve.org/)
-- [CVE-2026-109619](https://www.cve.org/)
+```bash
+cp targets.example.txt targets.txt
+```
 
-The CVE links above point to the CVE program landing page because record URLs
-can change during publication; use the identifiers to locate the canonical
-records.
+Run a fleet audit and generate a report:
+
+```bash
+python3 poc/posture_audit.py \
+  --targets-file targets.txt \
+  --format html \
+  --out posture-report.html \
+  --fail-on high
+```
+
+Available report formats are `json`, `csv`, `markdown`, `html`, and `sarif`.
+SARIF can be uploaded to GitHub Code Scanning. Use `--local` to inspect the
+local PHP CLI:
+
+```bash
+python3 poc/posture_audit.py --local --format markdown
+```
+
+The auditor reports severity, evidence, remediation, and confidence. See the
+[assessment runbook](docs/ASSESSMENT.md) and [report template](docs/REPORT.md)
+for an operational workflow.
+
+## Findings covered
+
+- PHP below the assessed vendor-fixed release.
+- Unsupported or unverified PHP branch.
+- `session.upload_progress.enabled` enabled.
+- Public health endpoint disclosing PHP version.
+- Unreachable endpoints requiring host-level verification.
+
+These checks reduce uncertainty; they do not replace vendor advisories,
+package verification, or worker-restart evidence. Review the
+[production baseline](docs/SECURITY_BASELINE.md).
+
+## Repository structure
+
+| Path | Purpose |
+| --- | --- |
+| `poc/` | Safe checkers, posture auditor, and tests |
+| `lab/` | Local Docker Compose verification lab |
+| `docs/` | Runbooks, research notes, baseline, and report template |
+| `.github/workflows/` | CI, CodeQL, and release SBOM automation |
+| `tools/` | Dependency-free SBOM generator |
+
+## Development
+
+```bash
+make check
+make test
+make compose-config
+make sbom
+```
+
+CI runs Python compilation, unit tests, a local lab audit, Compose validation,
+and CodeQL analysis. Releases attach a CycloneDX SBOM.
+
+## Scope and safety
+
+Only test approved assets. Do not place credentials, cookies, private URLs, or
+request bodies in reports. For vulnerability reports, follow [SECURITY.md](SECURITY.md).
 
 ## License
 
