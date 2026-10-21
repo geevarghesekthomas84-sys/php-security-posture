@@ -1,0 +1,3 @@
+2026-10-22T10:00:00Z php-fpm[100]: PHP Fatal error: Allowed memory size of 128M bytes exhausted in Unknown on line 0
+2026-10-22T10:01:00Z php-fpm[100]: request completed status=500 path=/index.php
+2026-10-22T10:02:00Z php-fpm[100]: worker spawned /bin/sh -c curl example.invalid

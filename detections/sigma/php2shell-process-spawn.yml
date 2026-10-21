@@ -1,0 +1,29 @@
+title: PHP Worker Spawning Shell Utility
+id: 8e4cbd70-6ef2-4c36-9ddc-php2shell-safe
+status: experimental
+description: Detects a PHP or web-server worker spawning a shell or common network utility.
+logsource:
+  category: process_creation
+detection:
+  parent:
+    ParentImage|endswith:
+      - '/php-fpm'
+      - '/php-cgi'
+      - '/apache2'
+      - '/httpd'
+      - '/nginx'
+  child:
+    Image|endswith:
+      - '/sh'
+      - '/bash'
+      - '/curl'
+      - '/wget'
+      - '/nc'
+      - '/ncat'
+  condition: parent and child
+falsepositives:
+  - Approved application integrations that intentionally invoke shell utilities
+level: high
+tags:
+  - attack.execution
+  - attack.t1059

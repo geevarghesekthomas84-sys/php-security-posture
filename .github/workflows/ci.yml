@@ -19,6 +19,8 @@ jobs:
         run: python -m py_compile poc/check_php_release.py poc/assess_fleet.py poc/posture_audit.py poc/php2shell_guard.py poc/real_world_check.py
       - name: Run unit tests
         run: python -m unittest discover -s poc -p 'test_*.py'
+      - name: Validate defensive fixtures
+        run: python -m unittest discover -s poc -p 'test_*.py'
       - name: Audit local lab endpoint
         run: |
           docker compose -f lab/docker-compose.yml up -d

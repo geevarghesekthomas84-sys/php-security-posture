@@ -1,9 +1,12 @@
-.PHONY: check compose-config test sbom
+.PHONY: check compose-config test fixtures sbom
 
 check:
 	python -m py_compile poc/check_php_release.py
 
 test:
+	python -m unittest discover -s poc -p 'test_*.py'
+
+fixtures:
 	python -m unittest discover -s poc -p 'test_*.py'
 
 audit-local:

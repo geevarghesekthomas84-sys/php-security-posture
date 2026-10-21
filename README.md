@@ -131,6 +131,11 @@ These checks reduce uncertainty; they do not replace vendor advisories,
 package verification, or worker-restart evidence. Review the
 [production baseline](docs/SECURITY_BASELINE.md).
 
+Safe validation assets are documented in [docs/SAFE_TESTING.md](docs/SAFE_TESTING.md).
+The repository includes synthetic logs, defensive ModSecurity/Sigma examples,
+and a non-default misconfigured lab profile for regression tests. It does not
+include exploit payloads.
+
 ## Repository structure
 
 | Path | Purpose |
