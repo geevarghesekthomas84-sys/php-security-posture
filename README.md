@@ -89,6 +89,16 @@ local PHP CLI:
 python3 poc/posture_audit.py --local --format markdown
 ```
 
+For a simpler operator command:
+
+```bash
+python3 poc/php2shell_guard.py --local
+python3 poc/php2shell_guard.py --scan-log /var/log/php-fpm.log
+```
+
+The guard checks local PHP settings and scans approved logs for defensive
+investigation indicators. It never sends requests to a target.
+
 The auditor reports severity, evidence, remediation, and confidence. See the
 [assessment runbook](docs/ASSESSMENT.md) and [report template](docs/REPORT.md)
 for an operational workflow.
@@ -131,6 +141,8 @@ and CodeQL analysis. Releases attach a CycloneDX SBOM.
 
 Only test approved assets. Do not place credentials, cookies, private URLs, or
 request bodies in reports. For vulnerability reports, follow [SECURITY.md](SECURITY.md).
+
+Technical background: [Abstract ASTRO report](https://www.abstract.security/blog/php2shell-critical-php-rce-vulnerabilities-cve-2026-109618-and-cve-2026-109619) and [Wiz Research report](https://www.wiz.io/blog/php2shell-php-rce).
 
 ## References
 

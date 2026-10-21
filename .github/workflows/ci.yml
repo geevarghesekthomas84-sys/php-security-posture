@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile Python checks
-        run: python -m py_compile poc/check_php_release.py poc/assess_fleet.py poc/posture_audit.py
+        run: python -m py_compile poc/check_php_release.py poc/assess_fleet.py poc/posture_audit.py poc/php2shell_guard.py
       - name: Run unit tests
         run: python -m unittest discover -s poc -p 'test_*.py'
       - name: Audit local lab endpoint
