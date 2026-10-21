@@ -15,6 +15,9 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+PROJECT_URL = "https://github.com/geevarghesekthomas84-sys/php-security-posture"
+AUTHOR = "GG"
+
 
 def check(url: str, timeout: float, authorization: str | None, insecure: bool) -> dict:
     headers = {"Accept": "text/plain, application/json", "User-Agent": "php-security-posture-safecheck/1.0"}
@@ -63,8 +66,10 @@ def render_console(results: list[dict], animate: bool) -> str:
     warn_icon = "!"
     frames = "|/-\\"
     if animate and sys.stdout.isatty():
-        for index in range(8):
-            sys.stdout.write(f"\r  {c['cyan']}checking approved endpoints {frames[index % len(frames)]}{c['reset']}")
+        steps = ("connecting", "reading health data", "checking PHP posture", "building report")
+        for index in range(12):
+            step = steps[index % len(steps)]
+            sys.stdout.write(f"\r  {c['cyan']}{step:<22} {frames[index % len(frames)]}{c['reset']}")
             sys.stdout.flush()
             time.sleep(0.05)
         sys.stdout.write("\r" + " " * 50 + "\r")
@@ -72,6 +77,7 @@ def render_console(results: list[dict], animate: bool) -> str:
         f"{c['blue']}{top}{c['reset']}",
         f"{c['blue']}{middle}{c['reset']}  {c['cyan']}PHP SECURITY POSTURE - SAFE CHECK{c['reset']}  {c['blue']}{middle}{c['reset']}",
         f"{c['blue']}{bottom}{c['reset']}",
+        f"  {c['dim']}by {AUTHOR}  |  {PROJECT_URL}{c['reset']}",
     ]
     for result in results:
         status = result["status"]

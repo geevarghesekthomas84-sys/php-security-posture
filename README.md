@@ -2,6 +2,8 @@
 
 ![PHP Security Posture banner](assets/security-posture-banner.png)
 
+Maintained by **GG** · [GitHub repository](https://github.com/geevarghesekthomas84-sys/php-security-posture)
+
 Defensive tooling for verifying PHP security releases, configuration posture,
 and remediation evidence across local labs and approved fleets.
 
