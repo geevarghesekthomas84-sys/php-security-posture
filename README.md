@@ -93,6 +93,7 @@ For a simpler operator command:
 
 ```bash
 python3 poc/php2shell_guard.py --local
+python3 poc/php2shell_guard.py --target http://127.0.0.1:18080/health.php
 python3 poc/php2shell_guard.py --scan-log /var/log/php-fpm.log
 ```
 

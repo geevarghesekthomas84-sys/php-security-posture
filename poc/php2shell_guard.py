@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import re
 import subprocess
+import urllib.request
 from pathlib import Path
 
 FIXED = {(8, 2): (8, 2, 35), (8, 3): (8, 3, 36), (8, 4): (8, 4, 27), (8, 5): (8, 5, 12)}
@@ -51,6 +52,32 @@ def local_check() -> int:
     return 0
 
 
+def target_check(url: str) -> int:
+    try:
+        with urllib.request.urlopen(url, timeout=10) as response:
+            fields = dict(line.split("=", 1) for line in response.read(65536).decode("utf-8", "replace").splitlines() if "=" in line)
+    except Exception as exc:
+        print(f"UNKNOWN: could not read {url} ({exc})")
+        return 2
+    print(f"Target: {url}")
+    print(f"PHP version: {fields.get('PHP_VERSION', 'unknown')}")
+    print(f"Upload progress: {'On' if fields.get('UPLOAD_PROGRESS') == '1' else 'Off'}")
+    print(f"Memory limit: {fields.get('MEMORY_LIMIT', 'unknown')}")
+    print(f"POST limit: {fields.get('POST_MAX_SIZE', 'unknown')}")
+    parsed = version(fields.get("PHP_VERSION", ""))
+    fixed = FIXED.get(parsed[:2]) if parsed else None
+    if fixed and parsed >= fixed:
+        print("PATCH STATUS: fixed branch detected")
+    else:
+        print("PATCH STATUS: upgrade or verify a vendor backport")
+    if fields.get("UPLOAD_PROGRESS") == "1":
+        print("ACTION: disable session.upload_progress.enabled at server level and restart workers")
+    else:
+        print("ACTION: keep upload progress disabled unless it is required")
+    print("NOTE: this is a posture check, not an exploit test")
+    return 0
+
+
 INDICATORS = (
     (re.compile(r"in Unknown on line 0", re.I), "PHP fatal error outside normal script execution"),
     (re.compile(r"Allowed memory size .* exhausted", re.I), "PHP memory exhaustion"),
@@ -84,8 +111,13 @@ def main() -> int:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--local", action="store_true", help="check local PHP configuration")
     group.add_argument("--scan-log", metavar="FILE", help="scan an approved PHP/web log")
+    group.add_argument("--target", help="check an approved health endpoint")
     args = parser.parse_args()
-    return local_check() if args.local else scan_log(args.scan_log)
+    if args.local:
+        return local_check()
+    if args.target:
+        return target_check(args.target)
+    return scan_log(args.scan_log)
 
 
 if __name__ == "__main__":
